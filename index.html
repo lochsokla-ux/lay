@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កម្មវិធីទស្សន៍ទាយលេខទូរស័ព្ទគ្រូឡាយ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .predict-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h2 {
+            color: #d32f2f;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .note-text {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+        input:focus {
+            border-color: #d32f2f;
+            outline: none;
+        }
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 13px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #b71c1c;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            text-align: left;
+        }
+        .ល្អណាស់ { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .ល្អ { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+        .ធម្មតា { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+        .អាក្រក់ { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .អាក្រក់ណាស់ { background-color: #fbe9e7; color: #d84315; border: 1px solid #ffccbc; }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .lucky-num {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: rgba(255,255,255,0.6);
+        }
+        .desc-text {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="predict-container">
+    <h2>ទស្សន៍ទាយលេខទូរស័ព្ទតាមបែបគ្រូឡាយ</h2>
+    <div class="note-text">ប្រព័ន្ធនឹងគណនាដោយស្វ័យប្រវត្តិតាមរយៈលេខ ៦ ខ្ទង់ចុងក្រោយ</div>
+    
+    <div class="form-group">
+        <input type="text" id="phoneInput" placeholder="បញ្ចូលលេខទូរស័ព្ទរបស់you" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+    </div>
+    
+    <button onclick="calculateFortune()">ចាំmeទាយឲ្យចាំតិច</button>
+    
+    <div id="resultBox" class="result-box">
+        <div class="result-header">
+            <div>លេខលទ្ធផល៖ <span class="lucky-num" id="luckyNumText">0</span></div>
+            <div class="status-badge" id="statusBadge">ល្អ</div>
+        </div>
+        <div class="desc-text" id="descText">អត្ថន័យ...</div>
+    </div>
+</div>
+
+<script>
+    const fortuneDatabase = {
+        1: { status: "ល្អណាស់", desc: "រីកចំរើនល្អអាចទទួលបានជ័យជំនះ" },
+        2: { status: "ធម្មតា", desc: "មានលាភមានបង់មិនទទួលផលអ្វីទេ" },
+        3: { status: "ល្អណាស់", desc: "មានភាពរីកចំរើនអ្វីៗអាចសំរេចបានដូចបំណង" },
+        4: { status: "អាក្រក់", desc: "ផ្លូវអនាគតមានឧបសគ្គច្រើនលំបាកវេទនា" },
+        5: { status: "ល្អណាស់", desc: "រកស៊ីមានបានទទួលបានទាំងកិត្តិយសទាំងផលប្រយោជន៍" },
+        6: { status: "ល្អណាស់", desc: "មានសំណាងច្រើនអាចទទួលបានគុណសម្បត្តិធំ" },
+        7: { status: "ល្អ", desc: "មានចិត្តអត់ធ្មត់ពិតជាអាចទទួលបានជោគជ័យដ៏ធំ" },
+        8: { status: "ល្អ", desc: "អាចមានឳកាសទទួលបានជោគជ័យ" },
+        9: { status: "អាក្រក់", desc: "ឯកកោរ គ្មានអ្នកជួយពិបាកទទួលទ្រព្យមកវិញ" },
+        10: { status: "អាក្រក់", desc: "ខាតបង់ទឹកចិត្តនិងកម្លាំងទទេ ខិតខំដោយឥតបានផល" },
+        11: { status: "ល្អ", desc: "មានលំនឹងល្អអ្នកដទៃស្ងើចសរសើរ" },
+        12: { status: "អាក្រក់", desc: "ទន់ខ្សោយធ្វើអ្វីក៏មិនបានសំរេចដែរ" },
+        13: { status: "ល្អណាស់", desc: "មានសំណាង់ល្អក្តីសង្ឃឹមច្រើន" },
+        14: { status: "ធម្មតា", desc: "ជ័យជំនះ ឬបរាជ័យពឹងផ្អែកលើការតាំងចិត្តរបស់ខ្លួន" },
+        15: { status: "ល្អ", desc: "ជ័យជំនះច្រើនមានការរីកចំរើន" },
+        16: { status: "ល្អណាស់", desc: "អាចសំរេចកិច្ចការធំបានទទួលទាំងកិត្តិយសទាំងផលប្រយោជន៍" },
+        17: { status: "ល្អ", desc: "មានអ្នកធំជួយអាចទទួលបានជោគជ័យ" },
+        18: { status: "ល្អ", desc: "មានភាពរីកចចម្រើននឹងបានសំរេចដូចបំណង" },
+        19: { status: "អាក្រក់", desc: "មានទំនាស់ច្រើនមានឧបសគ្គគ្រប់ជំពូក" },
+        20: { status: "អាក្រក់", desc: "ឧបសគ្គច្រើនឈឺច្រើនពិបាកចិត្តច្រើន" },
+        21: { status: "ល្អ", desc: "ធ្វើការល្អិតល្អន់មានប្រាជ្ញា" },
+        22: { status: "អាក្រក់ណាស់", desc: "ខាតបង់លាភធ្វើអ្វីក៏មិនបានសំរេចដូចបំណងដែរ" },
+        23: { status: "ល្អណាស់", desc: "កិត្តិយសល្អសំរេចកិច្ចការធំបាន" },
+        24: { status: "ល្អ", desc: "ពឹងផ្អែកលើសមត្តភាពផ្ទាល់ខ្លួនអាចសម្រេចកិច្ចការបាន" },
+        25: { status: "ល្អណាស់", desc: "មានសំណាងល្អមានគេជួយ" },
+        26: { status: "អាក្រក់ណាស់", desc: "មានឧបសគ្គច្រើន" },
+        27: { status: "ល្អ", desc: "អាចមានលាភសំណាងនិងជ័យជំនះ" },
+        28: { status: "ល្អណាស់", desc: "រាសីឡើងខ្ពស់រកស៊ីមានបាន" },
+        29: { status: "អាក្រក់", desc: "សំណាងល្អនិងអាក្រក់ កើតមានឡើងព្រមគ្នា" },
+        30: { status: "ល្អណាស់", desc: "ទទួលបាននូវលាភសំណាងនិងកិត្តិយស" },
+        31: { status: "ល្អណាស់", desc: "មានសំណាងអាចទទួលជោគជ័យ" },
+        32: { status: "ល្អ", desc: "មានប្រាជ្ញាឈ្លាសវៃមានភាពរីកចម្រើនច្រើន" },
+        33: { status: "អាក្រក់ណាស់", desc: "ជួបឧបសគ្គមិនចេះអស់ពិបាកនឹងទទួលបានជោគជ័យ" },
+        34: { status: "ធម្មតា", desc: "ត្រូវមានលំនឹងចិត្តកុំលោភលន់" },
+        35: { status: "អាក្រក់", desc: "ឧបសគ្គច្រើនតែជួបភាពលំបាក និងក្រខ្សត់" },
+        36: { status: "ល្អ", desc: "ឧបសគ្គអាចក្លាយជាសំណាងធ្វើអ្វីៗអាចបានដូចបំណង" },
+        37: { status: "ធម្មតា", desc: "អាចទទួលបាននូវកិត្តិយសតែពិបាកទទួលនូវលាភសំណាង" },
+        38: { status: "ល្អណាស់", desc: "អនាគតភ្លឺស្វាងត្រចះត្រចង់" },
+        39: { status: "ធម្មតា", desc: "មានសំណាងឬឧបសគ្គមានមិនទៀង" },
+        40: { status: "ល្អណាស់", desc: "មានសំណាងល្អអនាគតល្អហើយភ្លឺស្វាង ត្រចះត្រចង់" },
+        41: { status: "អាក្រក់", desc: "ការរកស៊ីត្រូវខាតបង់" },
+        42: { status: "ល្អ", desc: "បើមានចិត្តអត់ធ្មត់សំណាងអាក្រក់ អាចក្លាយជាមានលាភ" },
+        43: { status: "អាក្រក់", desc: "រឿងអ្វីៗពិបាកសម្រេចដូចបំណងប្រាថ្នា" },
+        44: { status: "ល្អ", desc: "មានសំណាងមានភាពរីកចម្រើន" },
+        45: { status: "ល្អណាស់", desc: "ជួបឧបសគ្គ មិនចេះអស់" },
+        46: { status: "ល្អណាស់", desc: "មានគេតាមជួយថែរក្សា អាចប្រកបមុខជំនួញបាន" },
+        47: { status: "ល្អណាស់", desc: "មានទាំងកិត្តិយសមានទាំងទ្រព្យសម្បត្តិ" },
+        48: { status: "ធម្មតា", desc: "មានឧបសគ្គហើយក៏មានសំណាងដែរ" },
+        49: { status: "ធម្មតា", desc: "មានឧបសគ្គហើយក៏មានសំណាងដែរ" },
+        50: { status: "ធម្មតា", desc: "លាភសំណាងនិងឧបសគ្គគឺមកមិនទៀង" },
+        51: { status: "ល្អ", desc: "ខិតខំនិងទទួលបានជោគជ័យ" },
+        52: { status: "អាក្រក់", desc: "ពេលបានលាភសំណាងនិងមានឧបសគ្គតាមមកពីក្រោយ" },
+        53: { status: "ធម្មតា", desc: "ខិតខំប្រឹងប្រែងខ្លាំងតែទទួលបានលទ្ធផលតិចតួច" },
+        54: { status: "អាក្រក់", desc: "ល្អតែសំបកក្រៅតែតាមការពិតមានឧបសគ្គ និងគ្រោះថ្នាក់" },
+        55: { status: "អាក្រក់ណាស់", desc: "ជួបឧបសគ្គ មិនចេះអស់អាចមានគ្រោះថ្នាក់" },
+        56: { status: "ល្អ", desc: "ខិតខំប្រឹងប្រែងអាចកែប្រែនូវជោគវាសនា" },
+        57: { status: "ធម្មតា", desc: "មានឧបសគ្គច្រើន តែសំណាងល្អនឹងមកពីក្រោយ" },
+        58: { status: "អាក្រក់", desc: "ពេលជួបនិងបញ្ហាចិត្តមិត្តនឹងនរពិបាកសំរេចចិត្ត" },
+        59: { status: "ធម្មតា", desc: "ចិត្តច្របូកច្របល់ពិបាកសំរេចចិត្ត" },
+        60: { status: "អាក្រក់", desc: "ជួបឧបសគ្គច្រើន" },
+        61: { status: "អាក្រក់", desc: "មានរឿងស្មុគស្មាញច្រើនពិបាកសំរេចអ្វីៗដែលបានប៉ងទុក" },
+        62: { status: "ល្អ", desc: "ខិតខំនិងទទួលបាននូវផលប្រយោជន៍" },
+        63: { status: "អាក្រក់", desc: "ខឹងខំ តែគ្មានទទួលបានផលប្រយោជន៍អ្វីឡើយ" },
+        64: { status: "ល្អ", desc: "មានសំណាងល្អអាចប្រកបមុខជំនួយបានធំបាន" },
+        65: { status: "ធម្មតា", desc: "ល្អ តែខ្វះទំនុកចិត្តលើខ្លួនឯង" },
+        66: { status: "ល្អណាស់", desc: "ធ្វើអ្វីៗតែងបានសំរេចមាសប្រាក់ហូរចូលច្រើន" },
+        67: { status: "ល្អ", desc: "ប្រសិនបើអាចក្តាប់ជាប់នូវឱកាសល្អអាចទទួលបានជោគជំនះ" },
+        68: { status: "អាក្រក់", desc: "ស្ថានភាពមិននឹងនរអាចចាញ់បោកគេជួបឧបសគ្គច្រើន" },
+        69: { status: "អាក្រក់", desc: "រកស៊ីខាតបង់ជួបភាពច្របូកច្របល់និងឧបសគ្គ" },
+        70: { status: "ធម្មតា", desc: "សំណាងល្អឬអាក្រក់អាស្រ័យលើភាពក្លាហាន" },
+        71: { status: "អាក្រក់", desc: "បានហើយតែប្រែជាបាត់បង់ទៅវិញពិបាកសំរេចតាមបំណងណាស់" },
+        72: { status: "ល្អ", desc: "មានសុភមង្គលនិងសំណាងល្អ" },
+        73: { status: "ធម្មតា", desc: "បើសិនជារុញរាពិបាកនិងទទួលជោគជំនះណាស់" },
+        74: { status: "ធម្មតា", desc: "មានសំណាងល្អណាស់ក៏មានសំណាងអក្រក់ដែរ" },
+        75: { status: "អាក្រក់", desc: "ការងាររកស៊ីខាតបង់ឱកាស អស់ទ្រព្យសម្បត្តិ" },
+        76: { status: "ល្អ", desc: "ពិបាកមុនស្រណុកក្រោយ" },
+        77: { status: "ធម្មតា", desc: "មានលាភមានបង់មិនអាចស្តុកស្តម្ភ" },
+        78: { status: "ធម្មតា", desc: "អនាគតមិនសូវភ្លឺស្វាងទេហើយក៏មិនសូវមានទ្រព្យសម្បត្តិដែរ" },
+        79: { status: "អាក្រក់", desc: "បានហើយតែប្រែជាខាតបង់ទៅវិញខិតខំឥតប្រយោជន៍" },
+        80: { status: "ល្អណាស់", desc: "អាចទទួលបានជោគជ័យច្រើន។" }
+    };
+
+    function calculateFortune() {
+        const rawInput = document.getElementById("phoneInput").value.trim();
+        
+        // លក្ខខណ្ឌទី១៖ បើមិនបានបញ្ចូលលេខទូរស័ព្ទ ត្រូវលោត message box ប្រាប់
+        if (rawInput === "") {
+            alert("សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកជាមុនសិន!");
+            return;
+        }
+        
+        // ចាប់យកតែលេខ ៦ ខ្ទង់ចុងក្រោយ
+        let lastSixDigits = rawInput.slice(-6);
+        let numToDivide = parseInt(lastSixDigits);
+        
+        // ករណីលេខចូលតិចជាង ៦ ខ្ទង់ (បំពេញបន្ថែមឱ្យគ្រប់លក្ខខណ្ឌគណនា)
+        if (isNaN(numToDivide)) {
+            alert("ទិន្នន័យមិនត្រឹមត្រូវ!");
+            return;
+        }
+
+        // វិធីសាស្ត្រគណនា៖ ចែកនឹង 80 រួចយកលេខក្រោយក្បៀសមកគុណនឹង 80 វិញ
+        let divisionResult = numToDivide / 80;
+        let decimalPart = divisionResult - Math.floor(divisionResult);
+        
+        // ជួសជុលបញ្ហា Floating point របស់ JavaScript ដោយប្រើ Math.round
+        let finalResult = Math.round(decimalPart * 80);
+        
+        // បើចែកដាច់ (គ្មានសល់ក្បៀស) គឺស្មើនឹង ៨០ 
+        if (finalResult === 0) {
+            finalResult = 80;
+        }
+
+        // បង្ហាញលទ្ធផលនៅលើ Interface
+        const resultBox = document.getElementById("resultBox");
+        const luckyNumText = document.getElementById("luckyNumText");
+        const statusBadge = document.getElementById("statusBadge");
+        const descText = document.getElementById("descText");
+
+        const data = fortuneDatabase[finalResult];
+
+        if (data) {
+            luckyNumText.innerText = finalResult;
+            statusBadge.innerText = data.status;
+            descText.innerText = data.desc;
+            
+            // ផ្លាស់ប្តូរពណ៌ប្រអប់ទៅតាមស្ថានភាព ល្អ/អាក្រក់
+            resultBox.className = "result-box " + data.status;
+            resultBox.style.display = "block";
+        }
+    }
+</script>
+
+</body>
+</html>
